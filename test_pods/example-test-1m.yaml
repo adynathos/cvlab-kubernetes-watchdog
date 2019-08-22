@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lis-wdog-events-1m
+  labels:
+    user: lis
+spec:
+  restartPolicy: Never
+  containers:
+    - name: base-test
+      image: ubuntu:cosmic
+      command: ["sleep", "1m"] 
