@@ -1,10 +1,10 @@
  
-import logging, sys
+import logging, logging.handlers, sys
 from pathlib import Path
 
 def init_log():
 	log_root = logging.getLogger(__name__)
-	log_root.setLevel(logging.INFO)
+	log_root.setLevel(logging.DEBUG)
 
 	Path('./logs').mkdir(exist_ok=True)
 	
@@ -13,7 +13,10 @@ def init_log():
 		logging.handlers.RotatingFileHandler('logs/watchdog.log', maxBytes=1024*1024, backupCount=7),
 	]
 
-	formatter = logging.Formatter(style='{asctime} | {name} {levelname} | {message}')
+	handlers[0].setLevel(logging.DEBUG)
+	handlers[1].setLevel(logging.INFO)
+
+	formatter = logging.Formatter('{asctime} | {name} {levelname} | {message}', style='{')
 
 	for handler in handlers:
 		handler.setFormatter(formatter)

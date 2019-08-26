@@ -31,7 +31,7 @@ def sorting_key_within_user(pod_info):
 		# date: older is better
 		LowerIsBetter(pod_info.date_started), 
 		# Break tie by name
-		LowerIsBetter(pod_info['name']),
+		LowerIsBetter(pod_info.name),
 	)
 
 
@@ -51,7 +51,7 @@ def sorting_key_all_users_together(pod_info):
 		# date: older is better
 		LowerIsBetter(pod_info.date_started), 
 		# Break tie by name
-		LowerIsBetter(pod_info['name']),
+		LowerIsBetter(pod_info.name),
 	)
 
 
@@ -73,15 +73,18 @@ def pods_calc_user_queue(pods_of_user : list):
 
 def pods_calculate_order(pod_infos):
 	# only running pods
-	pod_infos = [p for p in pod_infos if pod['status'] == 'Running']
+	pod_infos = [p for p in pod_infos if p.status == 'Running']
 
 	# users' queues
 	pods_by_user = {}
 	for pod in pod_infos:
-		pods_by_user.setdefault(pod['user'], []).append(copy(pod))
-	
+		pods_by_user.setdefault(pod.user, []).append(copy(pod))
+
 	pods_all = []
 	for user, pods in pods_by_user.items():
+
+		# log.debug(f'{user} - {pods.__len__()} pods')
+
 		# for known users calculate position within queue
 		if user is not None:
 			pods = pods_calc_user_queue(pods)

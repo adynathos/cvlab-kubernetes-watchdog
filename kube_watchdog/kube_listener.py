@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 import logging
 import kubernetes_asyncio as kube
+from typing import List
 
 log = logging.getLogger(__name__)
 
@@ -19,11 +20,11 @@ class PodInfo:
 	global_ordinal: int # position in global queue expressed in number of GPUs
 
 	def __init__(self, pod_obj):	
-		labels = pod_obj.metadata or {} # if null then use empty dict
+		labels = pod_obj.metadata.labels or {} # if null then use empty dict
 
 		self.name = pod_obj.metadata.name
 		self.user = labels.get('user', None)
-		self.status = pod_obj.status.phase,
+		self.status = pod_obj.status.phase
 
 		self.num_gpu = self.extract_num_gpu(pod_obj)
 		
@@ -36,7 +37,7 @@ class PodInfo:
 		
 	@staticmethod
 	def extract_priority(pod_obj):
-		labels = pod_obj.metadata or {} # if null then use empty dict
+		labels = pod_obj.metadata.labels or {} # if null then use empty dict
 		
 		priority_label = labels.get('priority', 0)
 		
@@ -79,8 +80,16 @@ class KubernetesPodListSupervisor:
 		
 		self.pod_info_list = []
 	
-	def get_pods(self):
+		self.listeners = set()
+
+	def get_pods(self) -> List[PodInfo]:
 		return self.pod_info_list
+
+	def add_listener(self, listener):
+		self.listeners.add(listener)
+
+	def remove_listener(self, listener):
+		self.listeners.remove(listener)
 
 	async def listen(self):
 		
@@ -116,6 +125,9 @@ class KubernetesPodListSupervisor:
 
 			self.pod_info_list = list(self.pod_info_processed.values())
 		
+			for listener in self.listeners:
+				listener(event)
+
 		except Exception as e:
-			log.exception(f'PodListSupervisor: error while processing event\n {event}')
+			log.exception(f'PodListSupervisor: error while processing event')
 	
