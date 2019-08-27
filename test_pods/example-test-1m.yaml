@@ -4,6 +4,7 @@ metadata:
   name: lis-wdog-events-1m
   labels:
     user: lis
+    priority: "1"
 spec:
   restartPolicy: Never
   containers:
