@@ -1,0 +1,139 @@
+"use strict";
+// const { h, render } = preact;
+// const { useState, useEffect } = preactHooks;
+import { h, render } from './lib/preact-10.0.0.rc1/preact.module.js';
+import { useState, useEffect } from './lib/preact-10.0.0.rc1/hooks.module.js';
+
+const UPDATE_INTERVAL = 1.5;
+
+const ORDINAL_ENDING = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'];
+function ordinal_text(num) {
+	if (num === 0) {
+		return "CPU";
+	}
+	return num.toString() + ORDINAL_ENDING[num % 10];
+}
+
+function ordinal_class(ordinal) {
+	return ordinal <= 6 ? `ord-${ordinal}` : 'ord-6';
+}
+
+function JobListRow(attrs) {
+	const pod_info = attrs.pod_info;
+
+	const known_user = pod_info.user !== null;
+
+	const [prio_class, prio_text] = pod_info.user_priority === 0 ? 
+		["priority auto", "auto"] : (
+			pod_info.user_priority < 0 ? 
+				["priority low", pod_info.user_priority.toString()] :
+				["priority high", `+${pod_info.user_priority}`]
+		);
+
+	const ord_cls = ordinal_class(pod_info.user_ordinal);
+
+	return h('tr', 
+		{'class': 'job-row'},
+		[
+			// name
+			h('td', {'class': 'name'}, pod_info.name),
+			// owner
+			(known_user ? 
+				h('td', {'class': 'user'},  pod_info.user) :
+				h('td', {'class': 'user anonymous'},  "anonymous" )
+			),
+			// gpu
+			h('td', {'class': 'gpu'}, pod_info.num_gpu === 0 ? "CPU" : pod_info.num_gpu.toString()),
+			// user priority
+			h('td', {'class': prio_class}, prio_text),
+			// user ordinal
+			h('td', {'class': `user-ord ${ord_cls}`}, known_user ? ordinal_text(pod_info.user_ordinal) : []),
+		],
+	);
+}
+
+const job_list_header = h('thead', {}, [
+	h('tr', {}, [
+		h('th', {'class': 'name'}, "Job Name"),
+		h('th', {'class': 'user'}, "User"),
+		h('th', {'class': 'gpu'}, "GPUs"),
+		h('th', {'class': 'priority'}, "Priority"),
+		h('th', {'class': 'user-ord'}, "User's GPU"),
+	]),
+]);
+
+function JobRowSeparator(attrs) {
+	const ordinal = attrs.ordinal;
+
+	const text = ordinal_text(ordinal);
+	const cls = ordinal_class(ordinal);
+
+	return h('tr', {}, 
+		h('td', {'class': `separator ${cls}`, 'colspan': 5}, text),
+	);
+}
+
+function JobList() {
+	const [pod_list, set_pod_list] = useState([]);
+
+	useEffect(() => {
+
+		const check_for_update = async () => {
+			const response_raw = await fetch('api/state');
+			const response = await response_raw.json();
+
+			set_pod_list(response);
+		};
+
+		check_for_update();
+
+		const timer_handle = setInterval(check_for_update, UPDATE_INTERVAL * 1000);
+
+		console.log('Registered update timer', timer_handle);
+
+		// return cleanup function
+		return () => {
+			clearInterval(timer_handle);
+			console.log('Quit update timer', timer_handle);
+		}
+	}, 
+	[], // empty dependency list means this is not invalidated on component updates
+	);
+
+	let rows = [];
+	let prev_ord = null;
+	for(const pod_info of pod_list) {
+		if (prev_ord !== null && prev_ord !== pod_info.user_ordinal) {
+			rows.push(h(JobRowSeparator, 
+				{'ordinal': prev_ord, 'key': `sep_ord_${prev_ord}`},
+			));
+		}
+
+		rows.push(h(JobListRow, 
+			{'pod_info': pod_info, 'key': pod_info.name},
+		));
+
+		prev_ord = pod_info.user_ordinal;
+	}
+
+	return h('table', {'id': 'job-list'}, [
+		job_list_header,
+		h('tbody', {}, rows),
+	]);
+}
+
+const DOM_loaded_promise = new Promise((accept, reject) => {
+	if (document.readyState === 'loading') {  // Loading hasn't finished yet
+		 document.addEventListener('DOMContentLoaded', accept);
+	} else {  // `DOMContentLoaded` has already fired
+		accept();
+	}
+}); 
+
+DOM_loaded_promise.then(() => {
+	render(
+		h(JobList),
+		document.getElementById('job-list-container'),
+	);
+});
+

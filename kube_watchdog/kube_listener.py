@@ -3,6 +3,7 @@ from datetime import date, datetime, timezone
 import logging
 import kubernetes_asyncio as kube
 from typing import List
+from ssl import SSLError
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class PodInfo:
 	@staticmethod
 	def extract_started_at(pod_obj):
 		started_at = None
-		for status in pod_obj.status.container_statuses:
+		for status in pod_obj.status.container_statuses or []:
 			if status.state.running is not None:
 				started_at = status.state.running.started_at # TODO get earlier date
 		return started_at
@@ -74,6 +75,9 @@ class PodInfo:
 
 
 class KubernetesPodListSupervisor:
+
+	POD_EVENTS = {'ADDED', 'MODIFIED', 'DELETED'}
+
 	def __init__(self):
 		self.pod_data_from_api = {}
 		self.pod_info_processed = {}
@@ -97,36 +101,44 @@ class KubernetesPodListSupervisor:
 		
 		api = kube.client.CoreV1Api()
 
-		w = kube.watch.Watch()
-
-		async for event in w.stream(api.list_namespaced_pod, namespace='cvlab'):
-			self.process_event(event)
-		
+		while True:
+			try:
+				w = kube.watch.Watch()
+				async for event in w.stream(api.list_namespaced_pod, namespace='cvlab'):
+					self.process_event(event)
+			except SSLError as e:
+				log.warning('SSL exception {e}, restarting watch ...')
 	
 	def process_event(self, event):
-
 		try:
-			pod_obj = event['object']
-			ev_type = event['type']
-			pod_name = pod_obj.metadata.name
+			ev_type = event.get('type', None) 
+			pod_obj = event.get('object', None)
 
-			log.debug(f"Event: {ev_type} {pod_name}")
+			if ev_type in self.POD_EVENTS:
+				pod_name = pod_obj.metadata.name
 
-			if ev_type == 'MODIFIED' or ev_type == 'ADDED':
-				self.pod_data_from_api[pod_name] = pod_obj
-				self.pod_info_processed[pod_name] = PodInfo(pod_obj)
+				log.debug(f"Event: {ev_type} {pod_name}")
 
-			elif ev_type == 'DELETED':
-				del self.pod_data_from_api[pod_name]
-				del self.pod_info_processed[pod_name]
+				if ev_type == 'MODIFIED' or ev_type == 'ADDED':
+					self.pod_data_from_api[pod_name] = pod_obj
+
+					try:
+						self.pod_info_processed[pod_name] = PodInfo(pod_obj)
+					except Exception as e:
+						log.exception(f'Error in pod info extraction, pod object:\n{pod_obj}')
+						return
+
+				elif ev_type == 'DELETED':
+					del self.pod_data_from_api[pod_name]
+					del self.pod_info_processed[pod_name]
+
+				self.pod_info_list = list(self.pod_info_processed.values())
+		
+				for listener in self.listeners:
+					listener(event)
 
 			else:
-				log.error(f'Unusual event type from kubectl: {ev_type}')
-
-			self.pod_info_list = list(self.pod_info_processed.values())
-		
-			for listener in self.listeners:
-				listener(event)
+				log.error(f'Unusual event type from kubectl: {event}')
 
 		except Exception as e:
 			log.exception(f'PodListSupervisor: error while processing event')

@@ -26,7 +26,7 @@ def build_json_response(pod_list):
 
 class WatchdogWebServer:
 
-	WEB_STATIC_DIR = Path(__file__).parent / 'web_static'
+	WEB_STATIC_DIR = Path(__file__).parent / 'web_assets'
 	WEB_STATIC_INDEX = WEB_STATIC_DIR / 'index.html'
 
 	def __init__(self, port=8000):
@@ -57,7 +57,7 @@ class WatchdogWebServer:
 		self.application.add_routes([
 			web.get('/', self.web_index),
 			web.get('/api/state', self.web_state),
-			web.static('/js', self.WEB_STATIC_DIR / 'js', follow_symlinks=True),
+			web.static('/static', self.WEB_STATIC_DIR / 'static', follow_symlinks=True),
 		])
 
 		runner = web.AppRunner(self.application)
