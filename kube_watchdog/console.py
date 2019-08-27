@@ -1,14 +1,18 @@
 
 import asyncio
-# import click
+import click
 import logging
 from .kube_listener import KubernetesPodListSupervisor
 from .fairness import pods_calculate_order
 
-log = logging.getLogger(__package__)
+log = logging.getLogger(__name__)
 
+
+@click.command('console')
 def main():
-
+	"""
+	Display the queue in console.
+	"""
 	monitor = KubernetesPodListSupervisor()
 
 	def on_kube_state_change(event):
@@ -23,12 +27,5 @@ def main():
 
 		log.info('\n'.join(out_lines))
 
-
 	monitor.add_listener(on_kube_state_change)
-
 	asyncio.run(monitor.listen())
-
-
-if __name__ == '__main__':
-	main()
-

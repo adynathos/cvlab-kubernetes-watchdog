@@ -3,13 +3,14 @@ import asyncio
 import json
 import dataclasses
 import logging
+import click
 from datetime import datetime, date
 from pathlib import Path
 from aiohttp import web
 from .kube_listener import KubernetesPodListSupervisor
 from .fairness import pods_calculate_order
 
-log = logging.getLogger(__package__)
+log = logging.getLogger(__name__)
 
 def json_serialize_unknown(obj):
 	if isinstance(obj, (datetime, date)):
@@ -35,6 +36,7 @@ class WatchdogWebServer:
 	def on_kube_state_change(self, event):
 		self.pod_hierarchy = pods_calculate_order(self.monitor.get_pods())
 		self.pod_hierarchy_json = build_json_response(self.pod_hierarchy)
+		log.info('New state: ' + self.pod_hierarchy_json)
 
 	async def web_index(self, request):
 		return web.FileResponse(self.WEB_STATIC_INDEX)
@@ -68,11 +70,11 @@ class WatchdogWebServer:
 			site.start(),
 		)
 
-
-def main():
-	server = WatchdogWebServer()
+@click.command('server')
+@click.option('--port', type=int, default=8000)
+def main(port):
+	"""
+	Host the web interface.
+	"""
+	server = WatchdogWebServer(port=port)
 	asyncio.run(server.run())
-
-if __name__ == '__main__':
-	main()
-
