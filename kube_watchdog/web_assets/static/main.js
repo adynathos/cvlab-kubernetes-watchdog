@@ -113,7 +113,9 @@ function JobList() {
 			{'pod_info': pod_info, 'key': pod_info.name},
 		));
 
-		prev_ord = pod_info.user_ordinal;
+		// anonymous jobs do not have a valid user_ordinal
+		const known_user = pod_info.user !== null;
+		prev_ord = known_user ? pod_info.user_ordinal : null;
 	}
 
 	return h('table', {'id': 'job-list'}, [
