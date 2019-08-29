@@ -100,10 +100,15 @@ function JobList() {
 	[], // empty dependency list means this is not invalidated on component updates
 	);
 
-	let rows = [];
+	const rows = [];
 	let prev_ord = null;
+
 	for(const pod_info of pod_list) {
-		if (prev_ord !== null && prev_ord !== pod_info.user_ordinal) {
+		// anonymous jobs do not have a valid user_ordinal
+		const known_user = pod_info.user !== null;
+		const this_ord = known_user ? pod_info.user_ordinal : null;
+
+		if (prev_ord !== null && prev_ord !== this_ord) {
 			rows.push(h(JobRowSeparator, 
 				{'ordinal': prev_ord, 'key': `sep_ord_${prev_ord}`},
 			));
@@ -113,9 +118,14 @@ function JobList() {
 			{'pod_info': pod_info, 'key': pod_info.name},
 		));
 
-		// anonymous jobs do not have a valid user_ordinal
-		const known_user = pod_info.user !== null;
-		prev_ord = known_user ? pod_info.user_ordinal : null;
+		prev_ord = this_ord;
+	}
+	
+	// if the last job is not anonymous, add the last separator as summary to how many gpus were used
+	if (prev_ord !== null) {
+		rows.push(h(JobRowSeparator, 
+			{'ordinal': prev_ord, 'key': `sep_ord_${prev_ord}`},
+		));
 	}
 
 	return h('table', {'id': 'job-list'}, [
