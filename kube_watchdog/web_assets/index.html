@@ -13,10 +13,30 @@
 </head>
 <body>
 	<main>
-
 		<div id='job-list-container'></div>
-
 	</main>
+
+	<main>
+		<h2 id="resource-allocation-in-cvlab">CVLab Kubernetes Queue</h2>
+		<p>More information in the <a href="https://gitlab.com/Adynathos/cvlab-kubernetes-guide">CVLab Kubernetes Guide</a>.</p>
+		<p>We want to ensure that everyone can use at least one GPU.
+		We order the jobs and the position in the queue will decide which jobs will be allowed to run in case we have more requests than available resources.</p>
+		<ul>
+		<li>A job using one person's 1st GPU has precedence over any person's 2nd GPU job. A 2nd GPU job is above any 3rd GPU job and so on.</li>
+		<li>Among the jobs of a single user, we order them according to user-set priority (in the label <code>priority</code>) with higher numbers being more important: priority <code>+1</code> is before priority <code>-1</code>, the default is 0.
+		If priority is equal, the earlier job takes precedence.</li>
+		</ul>
+		<p>If all of the 30 GPUs are occupied, and you want to run your <strong>1st</strong> job, you can kill the last job in the queue. In that case please notify the owner.</p>
+		<p>Please remember to specify your user name and priority in the pod config.</p>
+		<pre>
+metadata:
+  name: username-example-test
+  labels:
+    user: your-username
+    priority: "1" # job with higher priority number takes precedence
+		</pre>
+	</main>
+
 	<!-- <script src="static/lib/preact-10.0.0.rc1/preact.umd.js"></script>
 	<script src="static/lib/preact-10.0.0.rc1/hooks.umd.js"></script> -->
 	<script src="static/lib/preact-10.0.0.rc1/preact.module.js" type="module"></script>
