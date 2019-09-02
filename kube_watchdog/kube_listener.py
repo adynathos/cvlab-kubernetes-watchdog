@@ -101,13 +101,9 @@ class KubernetesPodListSupervisor:
 		
 		api = kube.client.CoreV1Api()
 
-		while True:
-			try:
-				w = kube.watch.Watch()
-				async for event in w.stream(api.list_namespaced_pod, namespace='cvlab'):
-					self.process_event(event)
-			except SSLError as e:
-				log.warning('SSL exception {e}, restarting watch ...')
+		w = kube.watch.Watch()
+		async for event in w.stream(api.list_namespaced_pod, namespace='cvlab'):
+			self.process_event(event)
 	
 	def process_event(self, event):
 		try:

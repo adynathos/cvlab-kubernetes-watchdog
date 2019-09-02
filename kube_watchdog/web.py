@@ -45,6 +45,8 @@ class WatchdogWebServer:
 		return web.Response(text=self.pod_hierarchy_json)
 
 	async def run(self):
+		log.info('Server being constructed')
+
 		# setup kubernetes
 		self.monitor = KubernetesPodListSupervisor()
 		self.monitor.add_listener(self.on_kube_state_change)
@@ -64,6 +66,8 @@ class WatchdogWebServer:
 		await runner.setup()
 		site = web.TCPSite(runner, '0.0.0.0', self.port)
 		
+		log.info('Server starting')
+
 		# wait for both
 		await asyncio.gather(
 			self.monitor.listen(),
