@@ -36,7 +36,9 @@ function JobListRow(attrs) {
 		{'class': 'job-row'},
 		[
 			// name
-			h('td', {'class': 'name'}, pod_info.name),
+			h('td', {'class': 'name'}, 
+				h('a', {'href': `describe/${pod_info.name}`, 'target': '_blank'}, pod_info.name),
+			),
 			// owner
 			(known_user ? 
 				h('td', {'class': 'user'},  pod_info.user) :

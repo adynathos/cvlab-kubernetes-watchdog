@@ -143,13 +143,23 @@ a {
 	color: rgb(0, 119, 26);
 }
 
+.name a {
+	color: rgb(0, 41, 9);
+}
+
 pre {
-	font-size: 1.2em;
 	padding-left: 1rem;
 	white-space: pre-wrap;
 
 	font-size: 0.8rem;
 	color: rgb(50, 50, 50);
 	letter-spacing: -0.05em;
+}
 
+pre.describe {
+	color: black;
+	font-family: 'sans serif';
+	font-size: 0.8rem;
+	letter-spacing: 0;
+	word-spacing: 0.6em;
 }

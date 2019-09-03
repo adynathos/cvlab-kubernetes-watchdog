@@ -1,6 +1,6 @@
 
 import asyncio
-import json
+import json, yaml
 import dataclasses
 import logging
 import click
@@ -23,6 +23,18 @@ def build_json_response(pod_list):
 	state_json = json.dumps(state_obj, default=json_serialize_unknown)
 	return state_json
 
+def expunge_nulls(d):
+	if isinstance(d, dict):
+		return {
+			k: expunge_nulls(v)
+			for (k, v) in d.items()
+			if v is not None
+		}
+	elif isinstance(d, list):
+		return [expunge_nulls(v) for v in d]
+	else:
+		return d
+
 
 class WatchdogWebServer:
 
@@ -33,6 +45,8 @@ class WatchdogWebServer:
 		self.port = port
 		self.pod_hierarchy_json = '[]'
 
+		self.html_template_describe_pod = (self.WEB_STATIC_DIR / 'describe_pod.html').read_text()
+
 	def on_kube_state_change(self, event):
 		self.pod_hierarchy = pods_calculate_order(self.monitor.get_pods())
 		self.pod_hierarchy_json = build_json_response(self.pod_hierarchy)
@@ -42,7 +56,28 @@ class WatchdogWebServer:
 		return web.FileResponse(self.WEB_STATIC_INDEX)
 
 	async def web_state(self, request):
-		return web.Response(text=self.pod_hierarchy_json)
+		return web.Response(
+			text = self.pod_hierarchy_json,
+			content_type = "application/json",
+		)
+
+	async def web_describe_pod(self, request):
+		pod_name = request.match_info['pod_name']
+
+		pod_obj = self.monitor.pod_data_from_api.get(pod_name, None)
+
+		if pod_obj is None:
+			raise web.HTTPNotFound(reason=f"No pod {pod_name}")
+
+		# no need for jinja yet
+		html = self.html_template_describe_pod.format(
+			pod_name = pod_name,
+			pod_data_yaml = yaml.dump(expunge_nulls(pod_obj.to_dict())),
+			date_accessed = datetime.now(),
+		)
+
+		return web.Response(text=html, content_type="text/html")
+	
 
 	async def run(self):
 		log.info('Server being constructed')
@@ -59,6 +94,7 @@ class WatchdogWebServer:
 		self.application.add_routes([
 			web.get('/', self.web_index),
 			web.get('/api/state', self.web_state),
+			web.get('/describe/{pod_name}', self.web_describe_pod),
 			web.static('/static', self.WEB_STATIC_DIR / 'static', follow_symlinks=True),
 		])
 
