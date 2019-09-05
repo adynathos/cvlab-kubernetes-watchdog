@@ -104,6 +104,8 @@ class KubernetesPodListSupervisor:
 		w = kube.watch.Watch()
 		async for event in w.stream(api.list_namespaced_pod, namespace='cvlab'):
 			self.process_event(event)
+
+		log.error('Kubernetes watch has run out of events')
 	
 	def process_event(self, event):
 		try:
