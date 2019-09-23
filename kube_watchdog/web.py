@@ -117,4 +117,4 @@ def main(port):
 	Host the web interface.
 	"""
 	server = WatchdogWebServer(port=port)
-	asyncio.run(server.run())
+	asyncio.get_event_loop().run_until_complete(server.run())
