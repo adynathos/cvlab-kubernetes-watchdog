@@ -33,8 +33,9 @@ class PodInfo:
 		self.user_ordinal = 0
 		self.global_ordinal = 0
 		
-		self.date_created = pod_obj.metadata.creation_timestamp,
-		self.date_started = self.extract_started_at(pod_obj)
+		self.date_created = pod_obj.metadata.creation_timestamp
+		self.date_started = self.extract_started_at(pod_obj) or self.date_created
+		# log.debug(f'date started {self.date_started}')
 		
 	@staticmethod
 	def extract_priority(pod_obj):

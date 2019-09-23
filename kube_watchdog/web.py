@@ -50,7 +50,7 @@ class WatchdogWebServer:
 	def on_kube_state_change(self, event):
 		self.pod_hierarchy = pods_calculate_order(self.monitor.get_pods())
 		self.pod_hierarchy_json = build_json_response(self.pod_hierarchy)
-		log.info('New state: ' + self.pod_hierarchy_json)
+		# log.info('New state: ' + self.pod_hierarchy_json)
 
 	async def web_index(self, request):
 		return web.FileResponse(self.WEB_STATIC_INDEX)
