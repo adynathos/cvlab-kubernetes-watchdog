@@ -103,12 +103,19 @@ class KubernetesPodListSupervisor:
 		api = kube.client.CoreV1Api()
 
 		while True:
-			w = kube.watch.Watch()
-			async for event in w.stream(api.list_namespaced_pod, namespace='cvlab'):
-				self.process_event(event)
+			try:
+				log.info('Kubernetes stream listener starting')
+				w = kube.watch.Watch()
+				async for event in w.stream(api.list_namespaced_pod, namespace='cvlab'):
+					self.process_event(event)
 
-			log.warning('Kubernetes watch has run out of events, restarting')
-	
+				log.warning('Kubernetes watch has run out of events, restarting in 5s ...')
+			except Exception as e:
+				log.exception('Exception in Kubernetes stream listener, restarting in 5s ...')
+			
+			await asyncio.sleep(5)
+
+
 	def process_event(self, event):
 		try:
 			ev_type = event.get('type', None) 
