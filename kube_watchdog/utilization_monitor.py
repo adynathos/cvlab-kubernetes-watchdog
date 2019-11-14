@@ -6,9 +6,9 @@ from io import StringIO
 
 log = logging.getLogger(__name__)
 
-GPU_QUERY_MEASUREMENT_DURATION = 3#31
+GPU_QUERY_MEASUREMENT_DURATION = 31
 GPU_QUERY_MEASUREMENT_COOLDOWN = 90
-GPU_QUERY_LOOP_INTERVAL = 1#5
+GPU_QUERY_LOOP_INTERVAL = 3
 
 GPU_QUERY_FIELDS = [
 	'index',
@@ -80,8 +80,8 @@ def process_nvidiasmi_report(report_txt):
 	mem_relative = report_table['memory.used'] / report_table['memory.total']
 	gpu_util = report_table['utilization.gpu']
 	
-	mem_relative_avg = np.mean(mem_relative)
-	gpu_util_avg = np.mean(gpu_util)
+	mem_relative_avg = np.mean(mem_relative).round(2)
+	gpu_util_avg = np.mean(gpu_util).round(2)
 	
 	return dict(
 		report_table = report_table,
@@ -124,6 +124,7 @@ class GpuUtilizationMonitor:
 		log.info(f'GPU utilization monitor starting for {self.pod_name}')
 		while True:
 			report = await measure_gpu_utilization(pod_name = self.pod_name, namespace = self.namespace)
+			log.debug(f'nvidiasmi result for {self.pod_name}')
 			if self.callback:
 				self.callback(report)
 			await asyncio.sleep(GPU_QUERY_MEASUREMENT_COOLDOWN)

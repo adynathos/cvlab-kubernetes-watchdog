@@ -156,10 +156,36 @@ pre {
 	letter-spacing: -0.05em;
 }
 
+th.gpu img {
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+}
+
 pre.describe {
 	color: black;
 	font-family: 'sans serif';
 	font-size: 0.8rem;
 	letter-spacing: 0;
 	word-spacing: 0.6em;
+}
+
+.utilization-box {
+	display: inline-block;
+	width: 2em;
+	height: 1em;
+	padding: 0;
+
+	border: black 1px solid;
+}
+
+.utilization-bar {
+	width: 50%;
+	height: 100%;
+	background: rgb(0, 41, 9);
+}
+.utilization-bar.mem {
+	background: rgb(0, 108, 158);
+}
+.utilization-bar.compute {
+	background: rgb(69, 189, 0);
 }

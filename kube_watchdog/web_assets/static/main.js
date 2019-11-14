@@ -1,8 +1,8 @@
 "use strict";
-// const { h, render } = preact;
-// const { useState, useEffect } = preactHooks;
-import { h, render } from './lib/preact-10.0.0.rc1/preact.module.js';
-import { useState, useEffect } from './lib/preact-10.0.0.rc1/hooks.module.js';
+import { h, render } from './lib/preact-10.0.5/preact.module.js';
+import { useState, useEffect } from './lib/preact-10.0.5/hooks.module.js';
+// import { h, render } from './lib/preact-10.0.0.rc1/preact.module.js';
+// import { useState, useEffect } from './lib/preact-10.0.0.rc1/hooks.module.js';
 
 const UPDATE_INTERVAL = 1.5;
 
@@ -17,6 +17,47 @@ function ordinal_text(num) {
 function ordinal_class(ordinal) {
 	return ordinal <= 6 ? `ord-${ordinal}` : 'ord-6';
 }
+
+function UtilizationBar(attrs) {
+	const percent = `${Math.round(attrs.value*100)}%`;
+	const sty = {'width': percent};
+	const message = `${attrs.title}: ${percent}`;
+
+	return h('div', {'class': 'utilization-box', 'title': message}, [
+		h('div', {'class': `utilization-bar ${attrs.variant}`, 'title': message, 'style': sty}),
+	])
+}
+
+const MSG_GPU_MEM = 'GPU memory allocated';
+const MSG_GPU_COMPUTE = 'GPU compute utilization';
+
+function GpuUtilizationCell(attrs) {
+	const pod_info = attrs.pod_info;
+
+	const num_gpu = h('span', {}, pod_info.num_gpu === 0 ? "CPU" : pod_info.num_gpu.toString());
+
+	const elems = [num_gpu];
+	// ${pod_info.utilization_mem}  ${pod_info.utilization_compute}
+	if(pod_info.utilization_mem !== null) {
+		elems.push(
+			' ',
+			h(UtilizationBar, {
+				'title': MSG_GPU_MEM,
+				'value': pod_info.utilization_mem,
+				'variant': 'mem',
+			}),
+			' ',
+			h(UtilizationBar, {
+				'title': MSG_GPU_COMPUTE,
+				'value': pod_info.utilization_compute,
+				'variant': 'compute',
+			}),
+		);
+	}
+
+	return h('td', {'class': 'gpu'}, elems);
+}
+
 
 function JobListRow(attrs) {
 	const pod_info = attrs.pod_info;
@@ -45,7 +86,7 @@ function JobListRow(attrs) {
 				h('td', {'class': 'user anonymous'},  "anonymous" )
 			),
 			// gpu
-			h('td', {'class': 'gpu'}, pod_info.num_gpu === 0 ? "CPU" : pod_info.num_gpu.toString()),
+			h(GpuUtilizationCell, {'pod_info': attrs.pod_info}),
 			// user priority
 			h('td', {'class': prio_class}, prio_text),
 			// user ordinal
@@ -58,7 +99,12 @@ const job_list_header = h('thead', {}, [
 	h('tr', {}, [
 		h('th', {'class': 'name'}, "Job Name"),
 		h('th', {'class': 'user'}, "User"),
-		h('th', {'class': 'gpu'}, "GPUs"),
+		h('th', {'class': 'gpu'}, [
+			"GPUs ",
+			h('img', {'src': 'static/images/utilization_mem.svg', 'title': MSG_GPU_MEM}),
+			" ",
+			h('img', {'src': 'static/images/utilization_compute.svg', 'title': MSG_GPU_COMPUTE}),
+		]),
 		h('th', {'class': 'priority'}, "Priority"),
 		h('th', {'class': 'user-ord'}, "User's GPU"),
 	]),

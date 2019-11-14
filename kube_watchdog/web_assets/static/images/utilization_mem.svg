@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" 
+	xmlns:cc="http://creativecommons.org/ns#" 
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+	xmlns:svg="http://www.w3.org/2000/svg" 
+	xmlns="http://www.w3.org/2000/svg" 
+	xmlns:xlink="http://www.w3.org/1999/xlink" width="8.9676676pt" height="15.38115pt" viewBox="0 0 3.163594 5.426128" version="1.1" id="svg8">
+	<g id="layer1" transform="translate(-0.4756955,-291.34876)">
+		<use x="0" y="0" xlink:href="#g915" id="use917-3" width="100%" height="100%" transform="translate(0,3.7613443)" />
+		<use x="0" y="0" xlink:href="#g915" id="use917" width="100%" height="100%" transform="translate(0.00812892,1.8855)" />
+		<g id="g915" transform="translate(-0.05917443,-0.12528259)">
+			<ellipse ry="0.46065849" rx="1.5473399" cy="291.97293" cx="2.1166666" id="path876" style="fill:#70b7c8;fill-opacity:1;stroke:#164450;stroke-width:0.07055556;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+			<path d="m 3.6640067,292.65099 c 2.9e-6,0.25442 -0.6927658,0.46066 -1.5473401,0.46066 -0.8545743,0 -1.5473428,-0.20624 -1.54734,-0.46066 l -0.002575,-0.67807 c -2.8e-6,0.25442 0.6856188,0.4778 1.5401931,0.4778 0.8545743,0 1.5596402,-0.21503 1.5596374,-0.46945 z" style="fill:#37abc8;fill-opacity:1;stroke:#164450;stroke-width:0.07055556;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" id="path876-6-7" />
+			<use height="100%" width="100%" id="use910" xlink:href="#path876-6-7" y="0" x="0" />
+		</g>
+	</g>
+</svg>
