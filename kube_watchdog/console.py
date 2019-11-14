@@ -2,7 +2,7 @@
 import asyncio
 import click
 import logging
-from .kube_listener import KubernetesPodListSupervisor
+from .monitor import KubernetesPodListSupervisor
 from .fairness import pods_calculate_order
 
 log = logging.getLogger(__name__)
@@ -28,4 +28,4 @@ def main():
 		log.info('\n'.join(out_lines))
 
 	monitor.add_listener(on_kube_state_change)
-	asyncio.run(monitor.listen())
+	asyncio.run(monitor.run())

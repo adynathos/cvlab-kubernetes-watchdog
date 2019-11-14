@@ -7,7 +7,8 @@ import click
 from datetime import datetime, date
 from pathlib import Path
 from aiohttp import web
-from .kube_listener import KubernetesPodListSupervisor
+import jinja2
+from .monitor import KubernetesPodListSupervisor
 from .fairness import pods_calculate_order
 
 log = logging.getLogger(__name__)
@@ -45,7 +46,9 @@ class WatchdogWebServer:
 		self.port = port
 		self.pod_hierarchy_json = '[]'
 
-		self.html_template_describe_pod = (self.WEB_STATIC_DIR / 'describe_pod.html').read_text()
+		self.html_template_describe_pod = jinja2.Template(
+			(self.WEB_STATIC_DIR / 'describe_pod.html').read_text()
+		)
 
 	def on_kube_state_change(self, event):
 		self.pod_hierarchy = pods_calculate_order(self.monitor.get_pods())
@@ -64,15 +67,18 @@ class WatchdogWebServer:
 	async def web_describe_pod(self, request):
 		pod_name = request.match_info['pod_name']
 
-		pod_obj = self.monitor.pod_data_from_api.get(pod_name, None)
+		pod_data = self.monitor.pod_data_by_name.get(pod_name, None)
 
-		if pod_obj is None:
+		if pod_data is None:
 			raise web.HTTPNotFound(reason=f"No pod {pod_name}")
 
-		# no need for jinja yet
-		html = self.html_template_describe_pod.format(
+		pod_description = pod_data.description_from_api
+		pod_utilization_report = pod_data.utilization_report
+
+		html = self.html_template_describe_pod.render(
 			pod_name = pod_name,
-			pod_data_yaml = yaml.dump(expunge_nulls(pod_obj.to_dict())),
+			nvidiasmi_report = pod_utilization_report.get('report_txt', None) or pod_utilization_report.get('error', ''),
+			pod_data_yaml = yaml.dump(expunge_nulls(pod_description.to_dict())),
 			date_accessed = datetime.now(),
 		)
 
@@ -89,8 +95,6 @@ class WatchdogWebServer:
 		# setup webserver
 		self.application = web.Application()
 
-		# routes = web.RouteTableDef()
-
 		self.application.add_routes([
 			web.get('/', self.web_index),
 			web.get('/api/state', self.web_state),
@@ -106,7 +110,7 @@ class WatchdogWebServer:
 
 		# wait for both
 		await asyncio.gather(
-			self.monitor.listen(),
+			self.monitor.run(),
 			site.start(),
 		)
 

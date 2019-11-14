@@ -6,16 +6,23 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<title>Pod {pod_name}</title>
+	<title>Pod {{pod_name}}</title>
 	<meta name="author" content="K Lis">
 
 	<link href="../static/style.css" rel="stylesheet">
 </head>
 <body>
 	<main>
-		<h2>Pod {pod_name}</h2>
-		<p>State as of {date_accessed:%Y-%m-%d  %H:%M:%S}.</p>
-		<pre class="describe">{pod_data_yaml}</pre>	
+		<h2>Pod {{pod_name}}</h2>
+		<p>State as of {{date_accessed.strftime('%Y-%m-%d  %H:%M:%S')}}.</p>
+
+		{% if nvidiasmi_report %}
+		<h2>GPU</h2>
+		<pre class="describe">{{nvidiasmi_report}}</pre>	
+		{% endif %}
+
+		<h2>Description</h2>
+		<pre class="describe">{{pod_data_yaml}}</pre>	
 	</main>	
 </body>
 </html>
