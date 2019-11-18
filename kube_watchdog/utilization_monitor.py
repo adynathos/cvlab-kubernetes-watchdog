@@ -34,14 +34,27 @@ def process_row_percent(val):
 def process_row_mem(val):
 	return float(val.split(maxsplit=1)[0])
 
-GPU_QUERY_PROCESSORS = {
+
+#
+# There is a bizarre error when np.genfromtxt writes into the dict passed as the `covnerters` argument.
+# Every time the function is called, it writes again, and wraps our functions in functools.partial.
+# After enough iterations, the recursion depth is too big and causes an exception.
+# Our defense is twofold:
+# * pass encoding = 'utf8', the wrapper is made to pass `bytes` as argument to our converter
+#	we don't want bytes, why would we want them
+# * use a frozen dict to enforce np.genfromtxt can't write to it
+
+class FrozenDict(dict):
+	def __setitem__(self, key, value):
+		raise RuntimeError(f'FrozenDict: Trying to set key {key} to {value}')
+
+GPU_QUERY_PROCESSORS = FrozenDict(**{
 	'index': int,
 	'utilization.gpu': process_row_percent,
 	'utilization.memory': process_row_percent,
 	'memory.used': process_row_mem,
 	'memory.total': process_row_mem,
-}
-
+})
 
 @functools.lru_cache(1)
 def get_api_ws():
@@ -79,6 +92,7 @@ def process_nvidiasmi_report(report_txt):
 		skip_header = 1, 
 		autostrip = True,
 		dtype = None, # prevent casting to float
+		encoding = 'utf8', # prevent adding tobytes wrappers
 	)
 	
 	mem_relative = report_table['memory.used'] / report_table['memory.total']
@@ -104,15 +118,16 @@ async def measure_gpu_utilization(pod_name, namespace, api=None):
 		)
 		report_parsed = process_nvidiasmi_report(result['report_txt'])
 		result.update(report_parsed)
+		log.info(f'nvidia-smi result success, pod {pod_name}')
 
 	except asyncio.TimeoutError:
-		log.warning(f'nvidia-smi timeout, pod {pod_name}')
 		result['error'] = f'timeout at {datetime.now().isoformat()}'
+		log.warning(f'nvidia-smi timeout, pod {pod_name}')
 
 	except Exception as e:
-		log.error(f'nvidia-smi monitor error, pod {pod_name}: {e}')
 		result['error'] = str(e)
-	
+		log.exception(f'nvidia-smi monitor error, pod {pod_name}: {e}')	
+
 	result['date'] = datetime.now()
 
 	return result
@@ -134,9 +149,12 @@ class GpuUtilizationMonitor:
 		log.info(f'GPU utilization monitor starting for {self.pod_name}')
 		while True:
 			report = await measure_gpu_utilization(pod_name = self.pod_name, namespace = self.namespace)
-			log.debug(f'nvidiasmi result for {self.pod_name}')
-			if self.callback:
-				self.callback(report)
+			try:
+				if self.callback:
+					self.callback(report)
+			except Exception as e:
+				log.exception(f'gpu utilization exception in callback, pod {self.pod_name}')
+			log.info(f'nvidia-smi waiting, pod {self.pod_name}')
 			await asyncio.sleep(GPU_QUERY_MEASUREMENT_COOLDOWN)
 
 	def start(self, callback):
@@ -148,5 +166,6 @@ class GpuUtilizationMonitor:
 		if self.loop_task is not None:
 			self.loop_task.cancel()
 			self.loop_task = None
+			log.info(f'utilization monitor stopped, pod {self.pod_name}')
 		self.callback = None
 		

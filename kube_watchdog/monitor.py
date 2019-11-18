@@ -128,11 +128,9 @@ class PodStoredData:
 			self.utilization_monitor = None
 
 	def update_utilization(self, utilization_report : dict):
-		new_info = utilization_report != self.utilization_report
 		self.utilization_report = utilization_report
 		self.data_pub.set_utilization_report(self.utilization_report)
-		if new_info:
-			self.parent.on_state_change()
+		self.parent.on_state_change()
 
 	def on_remove(self):
 		if self.utilization_monitor is not None:
