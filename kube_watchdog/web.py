@@ -77,6 +77,7 @@ class WatchdogWebServer:
 
 		html = self.html_template_describe_pod.render(
 			pod_name = pod_name,
+			nvidiasmi_date = pod_utilization_report.get('date', None),
 			nvidiasmi_report = pod_utilization_report.get('report_txt', None) or pod_utilization_report.get('error', ''),
 			pod_data_yaml = yaml.dump(expunge_nulls(pod_description.to_dict())),
 			date_accessed = datetime.now(),

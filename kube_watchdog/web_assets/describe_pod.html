@@ -18,6 +18,9 @@
 
 		{% if nvidiasmi_report %}
 		<h2>GPU</h2>
+		{% if nvidiasmi_date %}
+		<p>Measured at {{nvidiasmi_date.strftime('%Y-%m-%d  %H:%M:%S')}}</p>
+		{% endif %}
 		<pre class="describe">{{nvidiasmi_report}}</pre>	
 		{% endif %}
 

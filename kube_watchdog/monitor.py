@@ -27,6 +27,7 @@ class PodInfoToPublish:
 
 	utilization_mem: float = None # fraction of GPU memory allocated
 	utilization_compute: float = None # fraction of GPU compute power used
+	utilization_date: datetime = None
 
 	def __init__(self, pod_obj, utilization_report={}):	
 		labels = pod_obj.metadata.labels or {} # if null then use empty dict
@@ -48,6 +49,7 @@ class PodInfoToPublish:
 	def set_utilization_report(self, utilization_report : dict):
 		self.utilization_mem = utilization_report.get('memory', None)
 		self.utilization_compute = utilization_report.get('compute', None)
+		self.utilization_date = utilization_report.get('date', None)
 
 	@staticmethod
 	def extract_priority(pod_obj):
@@ -95,6 +97,7 @@ class PodStoredData:
 	description_from_api: kube.client.V1Pod
 	utilization_report: dict = {}
 	data_pub: PodInfoToPublish
+	# TODO note time of last change
 
 	utilization_monitor: GpuUtilizationMonitor = None
 	
@@ -102,6 +105,7 @@ class PodStoredData:
 		self.parent = parent
 		self.name = api_data.metadata.name
 		self.update_description(api_data)
+		
 
 	def update_description(self, api_data : kube.client.V1Pod):
 		self.description_from_api = api_data
@@ -109,8 +113,6 @@ class PodStoredData:
 
 		is_running = self.data_pub.status == 'Running'
 		is_measuring = self.utilization_monitor is not None
-
-		# log.info(f'upd desc {is_running, is_measuring}')
 
 		# ensure we measure utilization
 		if is_running and (not is_measuring):

@@ -2,13 +2,15 @@ import logging
 import asyncio, functools
 import kubernetes_asyncio as kube
 import numpy as np
+from datetime import datetime
 from io import StringIO
 
 log = logging.getLogger(__name__)
 
-GPU_QUERY_MEASUREMENT_DURATION = 31
+GPU_QUERY_MEASUREMENT_DURATION = 21
 GPU_QUERY_MEASUREMENT_COOLDOWN = 90
 GPU_QUERY_LOOP_INTERVAL = 3
+GPU_QUERY_MEASUREMENT_TIMEOUT = 5 + 2*GPU_QUERY_MEASUREMENT_DURATION
 
 GPU_QUERY_FIELDS = [
 	'index',
@@ -52,7 +54,7 @@ async def run_nvidiasmi_on_container(pod_name, namespace, api=None):
 
 	cmd = GPU_QUERY_CMD
 	
-	response = await api_ws.connect_get_namespaced_pod_exec(
+	response_future = api_ws.connect_get_namespaced_pod_exec(
 		name = pod_name, 
 		namespace = namespace,
 		command = cmd,
@@ -61,6 +63,8 @@ async def run_nvidiasmi_on_container(pod_name, namespace, api=None):
 		stdout = True,
 		tty = False,
 	)
+
+	response = await asyncio.wait_for(response_future, timeout=GPU_QUERY_MEASUREMENT_TIMEOUT)
 
 	return response
 
@@ -100,11 +104,17 @@ async def measure_gpu_utilization(pod_name, namespace, api=None):
 		)
 		report_parsed = process_nvidiasmi_report(result['report_txt'])
 		result.update(report_parsed)
-		
+
+	except asyncio.TimeoutError:
+		log.warning(f'nvidia-smi timeout, pod {pod_name}')
+		result['error'] = f'timeout at {datetime.now().isoformat()}'
+
 	except Exception as e:
 		log.error(f'nvidia-smi monitor error, pod {pod_name}: {e}')
 		result['error'] = str(e)
-		
+	
+	result['date'] = datetime.now()
+
 	return result
 
 
