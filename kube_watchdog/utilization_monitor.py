@@ -8,9 +8,9 @@ from io import StringIO
 
 log = logging.getLogger(__name__)
 
-GPU_QUERY_MEASUREMENT_DURATION = 21
-GPU_QUERY_MEASUREMENT_COOLDOWN = 90
-GPU_QUERY_LOOP_INTERVAL = 3
+GPU_QUERY_MEASUREMENT_DURATION = 11
+GPU_QUERY_MEASUREMENT_COOLDOWN = 120
+GPU_QUERY_LOOP_INTERVAL = 2
 GPU_QUERY_MEASUREMENT_TIMEOUT = 5 + 2*GPU_QUERY_MEASUREMENT_DURATION
 
 GPU_QUERY_FIELDS = [
@@ -117,7 +117,7 @@ async def measure_gpu_utilization(pod_name, namespace, api=None):
 			namespace = namespace,
 			api = api,
 		)
-		
+
 		if result['report_txt']:
 			report_parsed = process_nvidiasmi_report(result['report_txt'])
 			result.update(report_parsed)
