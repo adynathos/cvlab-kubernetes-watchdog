@@ -117,9 +117,15 @@ async def measure_gpu_utilization(pod_name, namespace, api=None):
 			namespace = namespace,
 			api = api,
 		)
-		report_parsed = process_nvidiasmi_report(result['report_txt'])
-		result.update(report_parsed)
-		log.info(f'nvidia-smi result success, pod {pod_name}')
+		
+		if result['report_txt']:
+			report_parsed = process_nvidiasmi_report(result['report_txt'])
+			result.update(report_parsed)
+			log.info(f'nvidia-smi result success, pod {pod_name}')
+		else:
+			# empty report, maybe its a cpu job?
+			result['error'] = f'empty response at {datetime.now().isoformat()}'
+			log.warning(f'nvidia-smi result empty, pod {pod_name}')
 
 	except asyncio.TimeoutError:
 		result['error'] = f'timeout at {datetime.now().isoformat()}'
