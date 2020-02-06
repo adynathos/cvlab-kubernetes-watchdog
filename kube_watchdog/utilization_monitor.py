@@ -2,6 +2,7 @@ import logging
 import asyncio, functools
 import kubernetes_asyncio as kube
 import numpy as np
+import random
 from datetime import datetime
 from io import StringIO
 
@@ -147,6 +148,10 @@ class GpuUtilizationMonitor:
 
 	async def measurement_loop(self):
 		log.info(f'GPU utilization monitor starting for {self.pod_name}')
+
+		# initial offset, so that all measurements don't start at the same time, overloading the server
+		await asyncio.sleep(random.uniform(0, 1) * GPU_QUERY_MEASUREMENT_COOLDOWN)
+
 		while True:
 			report = await measure_gpu_utilization(pod_name = self.pod_name, namespace = self.namespace)
 			try:
