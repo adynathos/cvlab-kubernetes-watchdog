@@ -9,11 +9,12 @@ log = logging.getLogger(__name__)
 
 
 @click.command('console')
-def main():
+@click.option('--namespace', type=str, help="Kubernetes namespace to monitor")
+def main(namespace):
 	"""
 	Display the queue in console.
 	"""
-	monitor = KubernetesPodListSupervisor()
+	monitor = KubernetesPodListSupervisor(namespace=namespace)
 
 	def on_kube_state_change(event):
 		pod_hierarchy = pods_calculate_order(monitor.get_pods())

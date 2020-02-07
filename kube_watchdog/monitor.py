@@ -9,8 +9,6 @@ from .utilization_monitor import GpuUtilizationMonitor
 
 log = logging.getLogger(__name__)
 
-KUBERNETES_NAMESPACE = 'cvlab'
-
 @dataclass
 class PodInfoToPublish:
 	""" Pod info to be exposed by the server """
@@ -141,7 +139,7 @@ class KubernetesPodListSupervisor:
 	pod_data_by_name : Mapping[str, PodStoredData]
 	pod_info_list : List[PodInfoToPublish]
 
-	def __init__(self, namespace=KUBERNETES_NAMESPACE):
+	def __init__(self, namespace):
 		self.namespace = namespace
 
 		self.pod_data_by_name = {}

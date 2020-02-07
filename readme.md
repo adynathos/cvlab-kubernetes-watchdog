@@ -1,7 +1,7 @@
 
 
 
-### Python packages
+### Python packages to install
 
 ```
 python -m pip install --upgrade aiohttp kubernetes_asyncio click jinja2 numpy pyyaml  
@@ -10,6 +10,15 @@ python -m pip install --upgrade aiohttp kubernetes_asyncio click jinja2 numpy py
 Additionally on py3.6:
 ```
 python -m pip install --upgrade dataclasses
+```
+
+### Run server
+
+Specify the port to listen on and the Kubernetes namespace to monitor.
+
+```bash
+cd this_repo
+python -m kube_watchdog --port 5336 --namespace cvlab
 ```
 
 

@@ -24,7 +24,7 @@ class KubernetesPodListMonitor:
 
 		while True:
 			try:
-				log.info('Kubernetes stream listener starting')
+				log.info(f'Kubernetes stream listener starting, namespace {self.namespace}')
 				w = kube.watch.Watch()
 				async for event in w.stream(api.list_namespaced_pod, namespace=self.namespace):
 					self.process_event(event)
