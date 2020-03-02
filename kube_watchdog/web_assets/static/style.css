@@ -181,11 +181,23 @@ pre.describe {
 .utilization-bar {
 	width: 50%;
 	height: 100%;
-	background: rgb(0, 41, 9);
+	background: hsl(133, 100%, 8%);
 }
 .utilization-bar.mem {
-	background: rgb(0, 108, 158);
+	background: hsl(199, 100%, 31%);
 }
 .utilization-bar.compute {
-	background: rgb(69, 189, 0);
+	background: hsl(98, 100%, 37%);
+}
+
+.age {
+	text-align: right;
+}
+
+.age.long {
+	font-weight: bold;
+}
+
+.age.short {
+	color: hsl(0, 0%, 20%);
 }

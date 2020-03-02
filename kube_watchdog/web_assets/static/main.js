@@ -28,28 +28,56 @@ function UtilizationBar(attrs) {
 	])
 }
 
+function AgeCell(attrs) {
+	const {date_started} = attrs;
+
+	if (date_started === null) {
+		return h('td', {'class': 'age', 'title': 'failed to recover age information, click on the name to see pod status'}, "-");
+
+	} else {
+		const age_ms = new Date() - new Date(date_started);
+
+		const age_h = age_ms / 3600000;
+		
+		const age_days = age_h / 24;
+
+		const {cls, age_text} = (age_days > 1) ? {
+			cls: age_days >= 2 ? 'age long' : 'age',
+			age_text: `${age_days.toFixed(1)} d`,
+		} : {
+			cls: 'short',
+			age_text: `${age_h.toFixed(1)} h`,
+		}
+
+		const tooltip = `Started at ${date_started}`;
+
+		return h('td', {'class': `age ${cls}`, 'title': tooltip}, age_text);
+	}
+
+}
+
 const MSG_GPU_MEM = 'GPU memory allocated';
 const MSG_GPU_COMPUTE = 'GPU compute utilization';
 
 function GpuUtilizationCell(attrs) {
-	const pod_info = attrs.pod_info;
+	const {num_gpu, utilization_mem, utilization_compute} = attrs.pod_info;
 
-	const num_gpu = h('span', {}, pod_info.num_gpu === 0 ? "CPU" : pod_info.num_gpu.toString());
+	const num_gpu_elem = h('span', {}, num_gpu === 0 ? "CPU" : num_gpu.toString());
+	const elems = [num_gpu_elem];
 
-	const elems = [num_gpu];
 	// ${pod_info.utilization_mem}  ${pod_info.utilization_compute}
-	if(pod_info.utilization_mem !== null) {
+	if(utilization_mem !== null) {
 		elems.push(
 			' ',
 			h(UtilizationBar, {
 				'title': MSG_GPU_MEM,
-				'value': pod_info.utilization_mem,
+				'value': utilization_mem,
 				'variant': 'mem',
 			}),
 			' ',
 			h(UtilizationBar, {
 				'title': MSG_GPU_COMPUTE,
-				'value': pod_info.utilization_compute,
+				'value': utilization_compute,
 				'variant': 'compute',
 			}),
 		);
@@ -85,6 +113,7 @@ function JobListRow(attrs) {
 				h('td', {'class': 'user'},  pod_info.user) :
 				h('td', {'class': 'user anonymous'},  "anonymous" )
 			),
+			h(AgeCell, {'date_started': attrs.pod_info.date_started}),
 			// gpu
 			h(GpuUtilizationCell, {'pod_info': attrs.pod_info}),
 			// user priority
@@ -95,19 +124,22 @@ function JobListRow(attrs) {
 	);
 }
 
-const job_list_header = h('thead', {}, [
-	h('tr', {}, [
-		h('th', {'class': 'name'}, "Job Name"),
-		h('th', {'class': 'user'}, "User"),
-		h('th', {'class': 'gpu'}, [
-			"GPUs ",
-			h('img', {'src': 'static/images/utilization_mem.svg', 'title': MSG_GPU_MEM}),
-			" ",
-			h('img', {'src': 'static/images/utilization_compute.svg', 'title': MSG_GPU_COMPUTE}),
-		]),
-		h('th', {'class': 'priority'}, "Priority"),
-		h('th', {'class': 'user-ord'}, "User's GPU"),
+const job_list_columns = [
+	h('th', {'class': 'name'}, "Job Name"),
+	h('th', {'class': 'user'}, "User"),
+	h('th', {'class': 'age'}, "Age"),
+	h('th', {'class': 'gpu'}, [
+		"GPUs ",
+		h('img', {'src': 'static/images/utilization_mem.svg', 'title': MSG_GPU_MEM}),
+		" ",
+		h('img', {'src': 'static/images/utilization_compute.svg', 'title': MSG_GPU_COMPUTE}),
 	]),
+	h('th', {'class': 'priority'}, "Priority"),
+	h('th', {'class': 'user-ord'}, "User's GPU"),
+];
+
+const job_list_header = h('thead', {}, [
+	h('tr', {}, job_list_columns),
 ]);
 
 function JobRowSeparator(attrs) {
@@ -117,7 +149,7 @@ function JobRowSeparator(attrs) {
 	const cls = ordinal_class(ordinal);
 
 	return h('tr', {}, 
-		h('td', {'class': `separator ${cls}`, 'colspan': 5}, text),
+		h('td', {'class': `separator ${cls}`, 'colspan': job_list_columns.length}, text),
 	);
 }
 
