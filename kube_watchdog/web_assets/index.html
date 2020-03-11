@@ -24,9 +24,15 @@
 		<ul>
 		<li>A job using one person's 1st GPU has precedence over any person's 2nd GPU job. A 2nd GPU job is above any 3rd GPU job and so on.</li>
 		<li>Among the jobs of a single user, we order them according to user-set priority (in the label <code>priority</code>) with higher numbers being more important: priority <code>+1</code> is before priority <code>-1</code>, the default is 0.
-		If priority is equal, the earlier job takes precedence.</li>
+		</li>
 		</ul>
-		<p>If all of the 30 GPUs are occupied, and you want to run your <strong>1st</strong> job, you can kill the last job in the queue. In that case please notify the owner.</p>
+		<p>If you're looking to allocate a new pod with higher rank than some already in the queue, and it does not allocate due to lack of resources (stays <code>Pending</code> or is rejected because of the quota),
+		you should kill the lowest priority pod (bottom of the table). 
+		You do not have to notify the owner, as it was before.
+		</p>
+		<p>
+		For example, if you are getting your 1st GPU, you can kill whatever is on the bottom of the table, as long as its someone's 2nd or higher GPU.
+		</p>
 		<p>Please remember to specify your user name and priority in the pod config.</p>
 		<pre>
 metadata:
@@ -35,13 +41,44 @@ metadata:
     user: your-username
     priority: "1" # job with higher priority number takes precedence
 		</pre>
+
+		<h3>Preventing empty pods</h3>
+		<p><code>sleep infinity</code> (or anything above 8h) is not a welcome specification for your pod, as these pods get forgotten and cause unnecessary costs for the lab.
+		</p>
+		<ul>
+			<li>
+			If you're debugging, 8h will definitely be sufficient for a day's session, especially as you can resubmit such a pod once it expires.
+			If you want to run multiple jobs and debug at the same time, consider joining forces with some other lab member: perhaps the already have a debug pod allocated and you can share it without the risk of someone killing your debugging instance due to its low rank.
+			</li>
+			<li>
+			If you use Jupyter notebooks, please run them with timeout, for example:
+			<pre>timeout 4h jupyter lab --ip=0.0.0.0 --no-browser --notebook-dir=/cvlabdata2/home/lis/kubernetes_example"</pre>
+			</li>
+			<li>
+			If you're looking to execute multiple programs on the same pod (GPU), please use the adaptive sleeper.
+			It terminates half an hour after there is no activity on the GPU, CPU and there is no python process. Use the following command:
+			<pre>python /cvlabdata2/sleeper/sleeper</pre>
+			This script needs the following libraries:
+			<pre>pip install psutil py3nvml</pre>
+			</li>
+			<li>
+			If a <code>sleep infinity</code> pod is spotted idle (as evidenced by the GPU usage column on the table), any lab member can kill such a pod at will.
+			</li>
+			<li>
+			In all other cases, and the general preferable solution, is to submit a script that runs your experiments and then exits in finite time (such as <code>python my_experiment.py</code>). This way we use (and pay for) exactly as much compute time as necessary.
+			</li>
+		</ul>
+	<p>
+	We're aware that those rules are an imperfect approximation of what a proper job scheduler should do. We're looking into deploying a more reliable and less manual solution such as <a href="https://volcano.sh/">https://volcano.sh/</a>. If you would like to have any input or help us with that endeavor, please come and talk to us.
+	</p>
+    
 	</main>
 
 	<!-- <script src="static/lib/preact-10.0.0.rc1/preact.umd.js"></script>
 	<script src="static/lib/preact-10.0.0.rc1/hooks.umd.js"></script> -->
-	<script src="static/lib/preact-10.0.0.rc1/preact.module.js" type="module"></script>
-	<script src="static/lib/preact-10.0.0.rc1/hooks.module.js" type="module"></script>
-	<script src="static/main.js" type="module"></script>
+	<script src="static/lib/preact-10.0.0.rc1/preact.module.js" type="module" defer="true"></script>
+	<script src="static/lib/preact-10.0.0.rc1/hooks.module.js" type="module" defer="true"></script>
+	<script src="static/main.js" type="module" defer="true"></script>
 </body>
 </html>
 
