@@ -22,9 +22,11 @@
 		<p>We want to ensure that everyone can use at least one GPU.
 		We order the jobs and the position in the queue will decide which jobs will be allowed to run in case we have more requests than available resources.</p>
 		<ul>
-		<li>A job using one person's 1st GPU has precedence over any person's 2nd GPU job. A 2nd GPU job is above any 3rd GPU job and so on.</li>
-		<li>Among the jobs of a single user, we order them according to user-set priority (in the label <code>priority</code>) with higher numbers being more important: priority <code>+1</code> is before priority <code>-1</code>, the default is 0.
+		<li>User's N-th pod has priority over all other (N+1)th pods (each successive GPU of a user has lower "rank").
+			A job using one person's 1st GPU has precedence over any person's 2nd GPU job. A 2nd GPU job is above any 3rd GPU job and so on.
 		</li>
+		<li>Among pods with the same rank, the priority is from the youngest to the oldest.</li>
+		<!-- <li>Among the jobs of a single user, we order them according to user-set priority (in the label <code>priority</code>) with higher numbers being more important: priority <code>+1</code> is before priority <code>-1</code>, the default is 0. </li> -->
 		</ul>
 		<p>If you're looking to allocate a new pod with higher rank than some already in the queue, and it does not allocate due to lack of resources (stays <code>Pending</code> or is rejected because of the quota),
 		you should kill the lowest priority pod (bottom of the table). 
@@ -32,6 +34,7 @@
 		</p>
 		<p>
 		For example, if you are getting your 1st GPU, you can kill whatever is on the bottom of the table, as long as its someone's 2nd or higher GPU.
+		But if it is your 2nd job, do not kill someone else's 2nd job.
 		</p>
 		<p>Please remember to specify your user name and priority in the pod config.</p>
 		<pre>
