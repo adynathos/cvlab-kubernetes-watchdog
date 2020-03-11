@@ -48,8 +48,8 @@ def sorting_key_all_users_together(pod_info):
 		pod_info.user is not None,
 		# position within users queue: lower is better th
 		- pod_info.user_ordinal, 
-		# date: older is better
-		LowerIsBetter(pod_info.date_started), 
+		# date: newer is better
+		pod_info.date_started, 
 		# Break tie by name
 		LowerIsBetter(pod_info.name),
 	)
