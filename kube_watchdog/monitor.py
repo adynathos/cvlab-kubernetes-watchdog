@@ -168,9 +168,14 @@ class KubernetesPodListSupervisor:
 			self.on_pod_deleted(pod_name)
 
 	def on_pod_deleted(self, pod_name):
-		pod_data = self.pod_data_by_name.pop(pod_name, None)
-		if pod_data is not None:
-			pod_data.on_remove()
+		try:
+			pod_data = self.pod_data_by_name.pop(pod_name, None)
+			if pod_data is not None:
+				pod_data.on_remove()
+
+			self.on_state_change()
+		except Exception as e:
+			log.exception(f'Error in pod deletion, pod object:\n{pod_name}')
 
 	def on_pod_update(self, pod_name, pod_obj):
 		""" Pod is created or modified """
