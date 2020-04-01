@@ -117,7 +117,7 @@ function JobListRow(attrs) {
 			// gpu
 			h(GpuUtilizationCell, {'pod_info': attrs.pod_info}),
 			// user priority
-			// h('td', {'class': prio_class}, prio_text),
+			h('td', {'class': prio_class}, prio_text),
 			// user ordinal
 			h('td', {'class': `user-ord ${ord_cls}`}, known_user ? ordinal_text(pod_info.user_ordinal) : []),
 		],
@@ -134,7 +134,7 @@ const job_list_columns = [
 		" ",
 		h('img', {'src': 'static/images/utilization_compute.svg', 'title': MSG_GPU_COMPUTE}),
 	]),
-	// h('th', {'class': 'priority'}, "Priority"),
+	h('th', {'class': 'priority'}, "Priority"),
 	h('th', {'class': 'user-ord'}, "User's GPU"),
 ];
 
