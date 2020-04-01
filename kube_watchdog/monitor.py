@@ -53,9 +53,15 @@ class PodInfoToPublish:
 	def extract_priority(pod_obj):
 		labels = pod_obj.metadata.labels or {} # if null then use empty dict
 		
-		priority_label = labels.get('priority', 0)
+		priority_label = labels.get('priority', '0')
 		
 		try:
+			# negative priority
+			# kubernetes does not allow labels starting with -
+			# so for negative priority p, we write 0-p
+			if priority_label.startswith('0-'):
+				return -int(priority_label[2:])
+
 			return int(priority_label)
 		except ValueError:
 			log.info(f'Non-numeric value for labels|priority: {priority_label} in pod {pod_obj.metadata.name}')
