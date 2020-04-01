@@ -36,13 +36,18 @@
 		For example, if you are getting your 1st GPU, you can kill whatever is on the bottom of the table, as long as its someone's 2nd or higher GPU.
 		But if it is your 2nd job, do not kill someone else's 2nd job.
 		</p>
-		<p>Please remember to specify your user name and priority in the pod config.</p>
+		<p>Please remember to specify your user name and priority in the pod config. The priority orders jobs <em>among the jobs of the same user</em>.</p>
 		<pre>
 metadata:
   name: username-example-test
   labels:
     user: your-username
     priority: "1" # job with higher priority number takes precedence
+		</pre>
+		<p>Kubernetes does not allow <code>-</code> at the beginning of a label, so negative priority <code>p</code> is written as <code>0-p</code></p>
+		<p>Change your priority at runtime:</p>
+		<pre>
+kubectl label pods/pod-name --overwrite priority=p
 		</pre>
 
 		<h3>Preventing empty pods</h3>
