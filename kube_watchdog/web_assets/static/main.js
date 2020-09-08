@@ -153,6 +153,12 @@ function JobRowSeparator(attrs) {
 	);
 }
 
+function ClusterStatsBar(attrs) {
+	const {cluster_stats} = attrs;
+
+	return h('span', {}, `Total ${cluster_stats.total_num_gpu_allocated} GPUs`);
+}
+
 function JobList() {
 	const [pod_list, set_pod_list] = useState([]);
 
@@ -182,6 +188,10 @@ function JobList() {
 
 	const rows = [];
 	let prev_ord = null;
+	
+	const cluster_stats = {
+		total_num_gpu_allocated: 0,
+	};
 
 	for(const pod_info of pod_list) {
 		// anonymous jobs do not have a valid user_ordinal
@@ -198,6 +208,8 @@ function JobList() {
 			{'pod_info': pod_info, 'key': pod_info.name},
 		));
 
+		cluster_stats.total_num_gpu_allocated += pod_info.num_gpu;
+
 		prev_ord = this_ord;
 	}
 	
@@ -208,10 +220,13 @@ function JobList() {
 		));
 	}
 
-	return h('table', {'id': 'job-list'}, [
-		job_list_header,
-		h('tbody', {}, rows),
-	]);
+	return [
+		h('table', {'id': 'job-list'}, [
+			job_list_header,
+			h('tbody', {}, rows),
+		]),
+		h(ClusterStatsBar, {cluster_stats}),
+	];
 }
 
 const DOM_loaded_promise = new Promise((accept, reject) => {
