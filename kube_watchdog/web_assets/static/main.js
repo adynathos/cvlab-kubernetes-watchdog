@@ -156,7 +156,7 @@ function JobRowSeparator(attrs) {
 function ClusterStatsBar(attrs) {
 	const {cluster_stats} = attrs;
 
-	return h('span', {}, `Total ${cluster_stats.total_num_gpu_allocated} GPUs`);
+	return h('span', {'class': 'cluster-stats-bar'}, `Number of GPUs allocated: ${cluster_stats.total_num_gpu_allocated}`);
 }
 
 function JobList() {

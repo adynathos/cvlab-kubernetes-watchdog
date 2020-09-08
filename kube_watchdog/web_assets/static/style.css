@@ -201,3 +201,9 @@ pre.describe {
 .age.short {
 	color: hsl(0, 0%, 20%);
 }
+
+.cluster-stats-bar {
+	display: block;
+	margin-top: 1rem;
+	text-align: center;
+}
