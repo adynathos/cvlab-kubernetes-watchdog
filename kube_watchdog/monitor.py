@@ -145,8 +145,9 @@ class KubernetesPodListSupervisor:
 	pod_data_by_name : Mapping[str, PodStoredData]
 	pod_info_list : List[PodInfoToPublish]
 
-	def __init__(self, namespace):
+	def __init__(self, namespace, config_file=None):
 		self.namespace = namespace
+		self.config_file = config_file
 
 		self.pod_data_by_name = {}
 		self.pod_info_list = []
@@ -163,7 +164,10 @@ class KubernetesPodListSupervisor:
 		self.listeners.remove(listener)
 
 	async def run(self):
-		kube_listener = KubernetesPodListMonitor(namespace = self.namespace)
+		kube_listener = KubernetesPodListMonitor(
+			namespace = self.namespace,
+			config_file = self.config_file,
+		)
 		await kube_listener.listen(callback=self.on_kubernetes_pod_event)
 
 	def on_kubernetes_pod_event(self, ev_type, pod_name, pod_obj):

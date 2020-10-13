@@ -18,7 +18,7 @@ Specify the port to listen on and the Kubernetes namespace to monitor.
 
 ```bash
 cd this_repo
-python -m kube_watchdog --port 5336 --namespace cvlab
+python -m kube_watchdog web --namespace cvlab --port 5336 
 ```
 
 

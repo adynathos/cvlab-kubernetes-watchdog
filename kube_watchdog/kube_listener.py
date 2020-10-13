@@ -10,8 +10,9 @@ class KubernetesPodListMonitor:
 
 	POD_EVENTS = {'ADDED', 'MODIFIED', 'DELETED'}
 
-	def __init__(self, namespace):
+	def __init__(self, namespace : str, config_file = None):
 		self.namespace = namespace
+		self.config_file = config_file
 
 	async def listen(self, callback : Callable[[str, str, kube.client.V1Pod], None]):
 		"""
@@ -19,7 +20,7 @@ class KubernetesPodListMonitor:
 		"""
 		self.callback = callback
 
-		await kube.config.load_kube_config()
+		await kube.config.load_kube_config(config_file = self.config_file)
 		api = kube.client.CoreV1Api()
 
 		while True:

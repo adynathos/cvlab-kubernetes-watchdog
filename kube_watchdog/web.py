@@ -117,11 +117,17 @@ class WatchdogWebServer:
 		)
 
 @click.command('server')
-@click.option('--port', type=int, default=8000)
 @click.option('--namespace', type=str, help="Kubernetes namespace to monitor")
-def main(port, namespace):
+@click.option('--config', type=click.Path(exists=True, file_okay=True, dir_okay=False), help="Config file path", default=None)
+@click.option('--port', type=int, default=8000)
+def main(namespace, config, port):
 	"""
 	Host the web interface.
 	"""
-	server = WatchdogWebServer(namespace=namespace, port=port)
+
+	server = WatchdogWebServer(
+		namespace = namespace, 
+		port = port,
+		config_file = config,
+	)
 	asyncio.get_event_loop().run_until_complete(server.run())
