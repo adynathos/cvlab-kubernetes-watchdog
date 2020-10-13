@@ -45,6 +45,7 @@ class WatchdogWebServer:
 	def __init__(self, namespace, port=8000, config_file=None):
 		self.port = port
 		self.namespace = namespace
+		self.config_file = config_file
 		self.pod_hierarchy_json = '[]'
 
 		self.html_template_describe_pod = jinja2.Template(
