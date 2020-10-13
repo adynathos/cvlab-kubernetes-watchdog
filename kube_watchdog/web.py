@@ -42,7 +42,7 @@ class WatchdogWebServer:
 	WEB_STATIC_DIR = Path(__file__).parent / 'web_assets'
 	WEB_STATIC_INDEX = WEB_STATIC_DIR / 'index.html'
 
-	def __init__(self, namespace, port=8000):
+	def __init__(self, namespace, port=8000, config_file=None):
 		self.port = port
 		self.namespace = namespace
 		self.pod_hierarchy_json = '[]'
@@ -91,7 +91,10 @@ class WatchdogWebServer:
 		log.info('Server being constructed')
 
 		# setup kubernetes
-		self.monitor = KubernetesPodListSupervisor(namespace=self.namespace)
+		self.monitor = KubernetesPodListSupervisor(
+			namespace = self.namespace, 
+			config_file = self.config_file,
+		)
 		self.monitor.add_listener(self.on_kube_state_change)
 
 		# setup webserver
