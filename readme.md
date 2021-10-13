@@ -1,4 +1,11 @@
 
+# CVLAB Kubernetes Watchdog
+
+A web dashboard for jobs running on EPFL's Kubernetes cluster.
+Lists pods per user, the number of GPUs allocated, GPU memory and compute utilization.
+
+The backend is using an async Python HTTP server \texttt{aiohttp} and interfacing with the Kubernetes API.
+The frontend web-application uses Preact.
 
 
 ### Python packages to install
